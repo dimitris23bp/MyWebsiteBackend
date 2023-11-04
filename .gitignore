@@ -1,0 +1,41 @@
+# Ignore bin and obj directories
+bin/
+obj/
+
+# Ignore Visual Studio files
+.vscode/
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# Ignore user-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore environment-specific appsettings files
+appsettings*.json
+
+# Ignore logs and other generated files
+logs/
+*.log
+
+# Ignore dependencies (use your project's package manager to restore them)
+packages/
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ignore build and output directories
+build/
+out/
+
+# Ignore user-specific and IDE-specific files
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
