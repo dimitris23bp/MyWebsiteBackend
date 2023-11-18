@@ -1,16 +1,21 @@
 using Microsoft.EntityFrameworkCore;
-using Models;
+using MyWebsiteBackend.Models;
 
 namespace MyWebsiteBackend;
 
 public class MyDbContext : DbContext
 {
-    public DbSet<Certificate> Certificates { get; set; }
+    public MyDbContext(DbContextOptions<MyDbContext> options)
+        : base(options) { }
+
+    public virtual DbSet<Certificate> Certificates { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        string connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION")!;
-        optionsBuilder.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 1, 0)));
+        if (!optionsBuilder.IsConfigured)
+        {
+            string connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION")!;
+            optionsBuilder.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 1, 0)));
+        }
     }
-
 }
