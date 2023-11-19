@@ -67,6 +67,24 @@ public class CertificatesServiceTests : IDisposable, IClassFixture<TestFixture>
         Assert.Equal(id, certificate!.Id);
     }
 
+    // Create a unit test that tries to find a certificate that doesn't exist
+    [Fact]
+    public async Task GetCertificate_ReturnsNullWhenCertificateDoesNotExist()
+    {
+        var data = GenerateCertificates();
+
+        _context.Certificates.AddRange(data);
+        _context.SaveChanges();
+
+        var service = new CertificatesService(_context);
+
+        // Act
+        var certificate = await service.GetCertificateById(100);
+
+        // Assert
+        Assert.Null(certificate);
+    }
+
     private IEnumerable<Certificate> GenerateCertificates()
     {
         return new List<Certificate>
