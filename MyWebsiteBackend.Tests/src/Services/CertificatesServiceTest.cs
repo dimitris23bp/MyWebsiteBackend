@@ -67,7 +67,6 @@ public class CertificatesServiceTests : IDisposable, IClassFixture<TestFixture>
         Assert.Equal(id, certificate!.Id);
     }
 
-    // Create a unit test that tries to find a certificate that doesn't exist
     [Fact]
     public async Task GetCertificate_ReturnsNullWhenCertificateDoesNotExist()
     {

@@ -13,7 +13,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// For caching responses
+builder.Services.AddResponseCaching();
+
+// FOr caching in services
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<ICertificatesService, CertificatesService>();
+builder.Services.AddScoped<IGithubService, GithubService>();
 
 string connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION")!;
 builder
@@ -33,6 +40,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// For caching responses
+app.UseResponseCaching();
 app.UseAuthorization();
 
 app.MapControllers();

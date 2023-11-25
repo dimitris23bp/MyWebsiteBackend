@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Octokit;
+using MyWebsiteBackend.Services.Interfaces;
 
 namespace MyWebsiteBackend.Controllers;
 
@@ -8,39 +8,47 @@ namespace MyWebsiteBackend.Controllers;
 public class GithubController : ControllerBase
 {
     private readonly ILogger<GithubController> _logger;
+    private readonly IGithubService _githubService;
 
-    private readonly GitHubClient Client;
-    private readonly string Username = "dimitris23bp";
-
-    public GithubController(ILogger<GithubController> logger)
+    public GithubController(ILogger<GithubController> logger, IGithubService githubService)
     {
-        this._logger = logger;
-        Client = new GitHubClient(new ProductHeaderValue(Username))
-        {
-            Credentials = new Credentials(Environment.GetEnvironmentVariable("TOKEN_GITHUB"))
-        };
+        _logger = logger;
+        _githubService = githubService;
     }
 
     [HttpGet("repositories")]
     public async Task<IActionResult> GetGithubRepositories()
     {
-        var request = new SearchRepositoriesRequest()
-        {
-            User = Username
-        };
-        _logger.LogDebug($"Request from GetGithubRepositories: {request}");
-        var response = await Client.Search.SearchRepo(request);
-        _logger.LogDebug($"Response from GetGithubRepositories: {response}");
+        var response = await _githubService.GetGithubRepositories();
 
         return Ok(response);
     }
 
-    [HttpGet("repository/{repoName}")]
-    public async Task<IActionResult> GetGitHubRepo(string repoName)
+    [HttpGet("languages/quotas")]
+    public async Task<IActionResult> GetAllLanguagesQuota()
     {
-        var response = await Client.Repository.Get(Username, repoName);
-        _logger.LogDebug($"Response from GetGithubRepositories for {repoName}: {response}");
+        var response = await _githubService.GetAllLanguagesQuotas();
+        return Ok(response);
+    }
 
+    [HttpGet("languages/all")]
+    public async Task<IActionResult> GetAllLanguages()
+    {
+        var response = await _githubService.GetAllLanguages();
+        return Ok(response);
+    }
+
+    [HttpGet("languages/main")]
+    public async Task<IActionResult> GetMainLanguages()
+    {
+        var response = await _githubService.GetMainLanguages();
+        return Ok(response);
+    }
+
+    [HttpGet("repository/{repoName}")]
+    public async Task<IActionResult> GetGithubRepository(string repoName)
+    {
+        var response = await _githubService.GetRepository(repoName);
         return Ok(response);
     }
 }

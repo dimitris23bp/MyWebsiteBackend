@@ -11,17 +11,14 @@ namespace MyWebsiteBackend.Controllers;
 public class CertificatesController : Controller
 {
     private readonly ILogger<CertificatesController> _logger;
-    private readonly MyDbContext _dbContext;
     private readonly ICertificatesService _certificatesService;
 
     public CertificatesController(
         ILogger<CertificatesController> logger,
-        MyDbContext myDbContext,
         ICertificatesService certificatesService
     )
     {
         this._logger = logger;
-        this._dbContext = myDbContext;
         this._certificatesService = certificatesService;
     }
 
