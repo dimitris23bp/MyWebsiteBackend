@@ -10,4 +10,5 @@ public interface IGithubService
     public Task<Dictionary<string, int>> GetAllLanguages();
     public Task<Dictionary<string, int>> GetMainLanguages();
     public Task<Repository> GetRepository(string repoName);
+    public Task<int> GetCommits();
 }

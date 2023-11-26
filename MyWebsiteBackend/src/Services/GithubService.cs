@@ -8,14 +8,25 @@ public class GithubService : IGithubService
 {
     private readonly ILogger<GithubService> _logger;
     private readonly IMemoryCache _cache;
+    private readonly IConfiguration _configuration;
 
     private readonly GitHubClient Client;
-    private readonly string Username = "dimitris23bp";
+    private readonly string Username;
 
-    public GithubService(ILogger<GithubService> logger, IMemoryCache cache)
+    public GithubService(
+        ILogger<GithubService> logger,
+        IMemoryCache cache,
+        IConfiguration configuration
+    )
     {
         _logger = logger;
         _cache = cache;
+        _configuration = configuration;
+        Username = _configuration.GetValue<string>("Github:Username")!;
+        if (Username == null)
+        {
+            throw new ArgumentException("Github.Username is not set in appsettings.json");
+        }
         Client = new GitHubClient(new ProductHeaderValue(Username))
         {
             Credentials = new Credentials(Environment.GetEnvironmentVariable("TOKEN_GITHUB"))
@@ -48,8 +59,8 @@ public class GithubService : IGithubService
         var response = await Client.Search.SearchRepo(request);
         _logger.LogDebug($"Response from GetGithubRepositories: {response}");
 
-        // TODO: Make seconds a global variable
-        _cache.Set(cacheValue, response, TimeSpan.FromSeconds(30));
+        var seconds = _configuration.GetValue<int>("Github:CacheDurationInSeconds");
+        _cache.Set(cacheValue, response, TimeSpan.FromSeconds(seconds));
         return response;
     }
 
@@ -112,6 +123,22 @@ public class GithubService : IGithubService
         var response = await Client.Repository.Get(Username, repoName);
         _logger.LogDebug($"Response from GetGithubRepositories for {repoName}: {response}");
         return response;
+    }
+
+    public async Task<int> GetCommits()
+    {
+        var repositories = await GetGithubRepositories();
+
+        var tasks = repositories
+            .Items
+            .Select(async repo =>
+            {
+                var response = await Client.Repository.Commit.GetAll(Username, repo.Name);
+                _logger.LogDebug($"Response from GetCommits for {repo.Name}: {response.Count}");
+                return response.Count;
+            });
+        var results = Task.WhenAll(tasks);
+        return results.Result.Sum();
     }
 
     private void AddLanguage(Dictionary<string, int> mainLanguages, string name)

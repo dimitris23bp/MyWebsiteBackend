@@ -16,7 +16,7 @@ obj/
 *.sln.docstates
 
 # Ignore environment-specific appsettings files
-appsettings*.json
+appsettings.Development.json
 
 # Ignore logs and other generated files
 logs/

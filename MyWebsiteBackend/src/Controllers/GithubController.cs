@@ -51,4 +51,11 @@ public class GithubController : ControllerBase
         var response = await _githubService.GetRepository(repoName);
         return Ok(response);
     }
+
+    [HttpGet("commits")]
+    public async Task<IActionResult> GetCommitsAmount()
+    {
+        var response = await _githubService.GetCommits();
+        return Ok(response);
+    }
 }
