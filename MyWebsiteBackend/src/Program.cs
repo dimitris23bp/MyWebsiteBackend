@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyWebsiteBackend;
+using MyWebsiteBackend.Factories;
 using MyWebsiteBackend.Services;
 using MyWebsiteBackend.Services.Interfaces;
 
@@ -21,6 +22,7 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<ICertificatesService, CertificatesService>();
 builder.Services.AddScoped<IGithubService, GithubService>();
+builder.Services.AddScoped<IGithubClientFactory, GithubClientFactory>();
 
 string connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION")!;
 builder

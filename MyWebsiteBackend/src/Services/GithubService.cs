@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using MyWebsiteBackend.Factories;
 using MyWebsiteBackend.Services.Interfaces;
 using Octokit;
 
@@ -10,27 +11,25 @@ public class GithubService : IGithubService
     private readonly IMemoryCache _cache;
     private readonly IConfiguration _configuration;
 
-    private readonly GitHubClient Client;
+    private readonly IGitHubClient _client;
     private readonly string Username;
 
     public GithubService(
         ILogger<GithubService> logger,
         IMemoryCache cache,
-        IConfiguration configuration
+        IConfiguration configuration,
+        IGithubClientFactory githubClientFactory
     )
     {
         _logger = logger;
         _cache = cache;
         _configuration = configuration;
+        _client = githubClientFactory.CreateClient();
         Username = _configuration.GetValue<string>("Github:Username")!;
         if (Username == null)
         {
             throw new ArgumentException("Github.Username is not set in appsettings.json");
         }
-        Client = new GitHubClient(new ProductHeaderValue(Username))
-        {
-            Credentials = new Credentials(Environment.GetEnvironmentVariable("TOKEN_GITHUB"))
-        };
     }
 
     public async Task<SearchRepositoryResult> GetGithubRepositories()
@@ -56,7 +55,7 @@ public class GithubService : IGithubService
             return value!;
         }
         _logger.LogDebug($"Request from GetGithubRepositories: {request}");
-        var response = await Client.Search.SearchRepo(request);
+        var response = await _client.Search.SearchRepo(request);
         _logger.LogDebug($"Response from GetGithubRepositories: {response}");
 
         var seconds = _configuration.GetValue<int>("Github:CacheDurationInSeconds");
@@ -70,7 +69,7 @@ public class GithubService : IGithubService
         var totalLanguages = new Dictionary<string, long>();
         foreach (var repo in response.Items)
         {
-            var languages = await Client.Repository.GetAllLanguages(repo.Id);
+            var languages = await _client.Repository.GetAllLanguages(repo.Id);
             languages
                 .ToList()
                 .ForEach(language =>
@@ -89,7 +88,7 @@ public class GithubService : IGithubService
         var totalLanguages = new Dictionary<string, int>();
         foreach (var repo in response.Items)
         {
-            var languages = await Client.Repository.GetAllLanguages(repo.Id);
+            var languages = await _client.Repository.GetAllLanguages(repo.Id);
             languages
                 .ToList()
                 .ForEach(language =>
@@ -120,7 +119,7 @@ public class GithubService : IGithubService
 
     public async Task<Repository> GetRepository(string repoName)
     {
-        var response = await Client.Repository.Get(Username, repoName);
+        var response = await _client.Repository.Get(Username, repoName);
         _logger.LogDebug($"Response from GetGithubRepositories for {repoName}: {response}");
         return response;
     }
@@ -133,7 +132,7 @@ public class GithubService : IGithubService
             .Items
             .Select(async repo =>
             {
-                var response = await Client.Repository.Commit.GetAll(Username, repo.Name);
+                var response = await _client.Repository.Commit.GetAll(Username, repo.Name);
                 _logger.LogDebug($"Response from GetCommits for {repo.Name}: {response.Count}");
                 return response.Count;
             });
