@@ -12,7 +12,6 @@ public class GithubServiceTests
 {
     private readonly Mock<IGitHubClient> _clientMock;
     private readonly Mock<ILogger<GithubService>> _loggerMock;
-
     private readonly Mock<IMemoryCache> _cacheMock;
     private readonly Mock<IGithubClientFactory> _clientFactoryMock;
     private readonly GithubService _githubService;
@@ -44,7 +43,7 @@ public class GithubServiceTests
     }
 
     [Fact]
-    public async Task GetGithubRepositories_ReturnsRepositories_WhenCacheIsEmpty()
+    public async Task GetGithubRepositoriesWithEmptyCache()
     {
         // Arrange
         var request = new SearchRepositoriesRequest() { User = "dimitris23bp" };
@@ -68,5 +67,26 @@ public class GithubServiceTests
         Assert.Equal(expectedResponse, result);
         _clientMock.Verify(c => c.Search.SearchRepo(request), Times.Once);
         _cacheMock.Verify(c => c.CreateEntry(It.IsAny<object>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetRepositoriesWithValueInCache()
+    {
+        // Arrange
+        var request = new SearchRepositoriesRequest() { User = "dimitris23bp" };
+        _cacheMock
+            .Setup(c => c.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
+            .Returns(true);
+
+        // Act
+        await _githubService.GetGithubRepositories(request);
+
+        // Assert
+        _cacheMock.Verify(
+            c => c.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny),
+            Times.Once
+        );
+        _clientMock.Verify(c => c.Search.SearchRepo(request), Times.Never);
+        _cacheMock.Verify(c => c.CreateEntry(It.IsAny<object>()), Times.Never);
     }
 }
