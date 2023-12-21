@@ -38,13 +38,12 @@ public class GithubService : IGithubService
         return await GetGithubRepositories(request);
     }
 
-    /**
-    * Get Github Repositories
-    * There is a cache mechanism in place, because I use that method plenty of times with the same exact request
-    *
-    * @param request
-    * @return SearchRepositoryResult
-    */
+    /// <summary>
+    /// Get Github Repositories
+    /// There is a cache mechanism in place, because I use that method plenty of times with the same exact request
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     public async Task<SearchRepositoryResult> GetGithubRepositories(
         SearchRepositoriesRequest request
     )
@@ -63,6 +62,12 @@ public class GithubService : IGithubService
         return response;
     }
 
+    /// <summary>
+    /// Get all languages from all repositories
+    /// </summary>
+    /// <returns>
+    /// A dictionary with all languages that are used as key, and their overall number of bytes  as value
+    /// </returns>
     public async Task<Dictionary<string, long>> GetAllLanguagesQuotas()
     {
         var response = await GetGithubRepositories();
@@ -81,6 +86,12 @@ public class GithubService : IGithubService
         return totalLanguages;
     }
 
+    /// <summary>
+    /// Get all languages from all repositories
+    /// </summary>
+    /// <returns>
+    /// A dictionary with all languages as key and the amount of times a language was used as value
+    /// </returns>
     public async Task<Dictionary<string, int>> GetAllLanguages()
     {
         var response = await GetGithubRepositories();
@@ -101,14 +112,19 @@ public class GithubService : IGithubService
         return totalLanguages;
     }
 
+    /// <summary>
+    /// Get the main languages from all repositories
+    /// </summary>
+    /// <returns>
+    /// A dictionary with all languages as key and the amount of times a language was used as primary language on a repo as value
+    /// </returns>
     public async Task<Dictionary<string, int>> GetMainLanguages()
     {
         var response = await GetGithubRepositories();
 
         var mainLanguages = new Dictionary<string, int>();
         response
-            .Items
-            .ToList()
+            .Items.ToList()
             .ForEach(repo =>
             {
                 AddLanguage(mainLanguages, repo.Language);
@@ -117,6 +133,11 @@ public class GithubService : IGithubService
         return mainLanguages;
     }
 
+    /// <summary>
+    /// Get a specific repository
+    /// </summary>
+    /// <param name="repoName">Name of the repository</param>
+    /// <returns>Repository</returns>
     public async Task<Repository> GetRepository(string repoName)
     {
         var response = await _client.Repository.Get(Username, repoName);
@@ -124,18 +145,20 @@ public class GithubService : IGithubService
         return response;
     }
 
+    /// <summary>
+    /// Get total number of commits from all repositories of user
+    /// </summary>
+    /// <returns>The amount of commits</returns>
     public async Task<int> GetCommits()
     {
         var repositories = await GetGithubRepositories();
 
-        var tasks = repositories
-            .Items
-            .Select(async repo =>
-            {
-                var response = await _client.Repository.Commit.GetAll(Username, repo.Name);
-                _logger.LogDebug($"Response from GetCommits for {repo.Name}: {response.Count}");
-                return response.Count;
-            });
+        var tasks = repositories.Items.Select(async repo =>
+        {
+            var response = await _client.Repository.Commit.GetAll(Username, repo.Name);
+            _logger.LogDebug($"Response from GetCommits for {repo.Name}: {response.Count}");
+            return response.Count;
+        });
         var results = Task.WhenAll(tasks);
         return results.Result.Sum();
     }
